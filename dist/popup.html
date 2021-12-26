@@ -12,14 +12,39 @@
 
     <body>
         
-        <h1 style="margin-top: -2px;">Search for a crypto by symbol 📈</h1>
+        <h1 style="margin-top: -2px;">Search for a cryptocurrency by its symbol 📈</h1>
         <form id="symform">
-            <input id="sym" name="symbol" type="text" />
-            <button id="search" class="button-17">Search Price 🔍</button>
+            <input id="sym" name="symbol" placeholder=" Enter in lowercase" type="text" />
+            <button id="search" class="button-17">Check Price 🔍</button>
+            <div class="price-result" style="display: inline-block; margin-left: 10px;"><p id="price"></p></div>
+            <div class="error" style="display: inline-block;"></div>
         </form>
-        <!-- <div class="loading">loading...</div> -->
-        <div class="error"></div>
-        <div class="price-result"><p id="price"></p></div>
+        <button id="add-to-watchlist" class="button-17">Add to Watchlist ☑️</button>
+        <div class="error-watchlist" style="display: inline-block; margin-left: 10px;"></div>
+     
+        <h2 style="margin-top: 40px;">Watchlist</h2>
+        <hr style="margin-top: 10px">
+        <p  id="tooltip" style="margin-top: 40px; color: #3A3B3C; font-size: 14px;">To set price alerts, add a crypto to the watchlist first.</p>
+        <!-- an item in the watchlist -->
+        <div id="watchlist-item-wrapper">
+            <div id="watchlist-item" style="display: none; margin-top: 10px; font-weight: 100; font-size:12px; margin-bottom: 20px;">
+                <!-- info about the symbol -->
+                <div id="basic-info">
+                    <span id="symbol-name">SOL</span>  
+                    <span id="symbol-price">200 USD</span>
+                </div>
+                <!-- price alert form -->
+                <form id="price-alert">
+                    <label>⚑ when price changes to</label>
+                    <input style="width: 25px; height: 11px; margin-left: 2px; margin-right:2px" id="price-target" type="text"/>
+                    <span>USD</span>
+                    <button id="set-alert" style="margin-left: 20px; height: 30px; padding: 5px" class="button-17">🔔</button>
+                </form>
+                <!-- add new alert -->
+                <button id="add-new-alert" style="height: 25px; width: 100; padding-left: 19px; padding-right:19px" class="button-17">Add New Alert</button>
+                <hr style="margin-top: 20px;">
+            </div>
+        </div>
 
         <script src="../jquery-3.6.0.min.js"></script>
         <script src="./main.js"></script>
@@ -30,10 +55,11 @@
 /* CSS */
 
 body{
-    font-family: "avenir","Google Sans",Roboto,Arial,sans-serif;
-    width: 180px;
-    height: 280px;
+    font-family: "avenir","Google Sans",Roboto, Arial, sans-serif;
+    width: 250px;
+    height: 660px;
     padding: 20px;
+    overflow: auto;
 }
 div{
     font-weight: bold;
@@ -42,9 +68,10 @@ div{
 }
 #sym{
     height: 25px;
+    margin-bottom: 20px;
 }
 .button-17 {
-  margin-top: 32px;
+  margin-top: 12px;
   align-items: center;
   appearance: none;
   background-color: #fff;
@@ -57,9 +84,9 @@ div{
   display: inline-flex;
   fill: currentcolor;
   font-family: "avenir","Google Sans",Roboto,Arial,sans-serif;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
-  height: 48px;
+  height: 40px;
   justify-content: center;
   letter-spacing: .25px;
   line-height: normal;
