@@ -149,8 +149,6 @@ $(document).ready(function(){
 
     }
 
-    // chrome.storage.sync.clear(); 
-
 
     // Get from chrome storage all the symbols on the watchlist
     // format is {symbol: code_snippet}
@@ -189,13 +187,44 @@ $(document).ready(function(){
                             $(id_name).find('#symbol-price').append(" USD"); 
                             $(id_name).find('#watchlist-item').css("display", "block")        
                         }) 
+                }
             }
-        }
-          });
+        });
               
     }
 
+    // CLEAR SYNC STORAGE: 
+    // chrome.storage.sync.clear(); 
 
 
+    // when "Add New Alert" button is clicked, add an empty alert form
+    $('#add-new-alert').on('click', function( e ){
+        e.preventDefault();
+        // get the symbol name from parent div
+
+        // add the alert form under the symbol name
+
+    })
+
+
+    // when user sets a price alert, store this alert in the sync storage of chrome
+    // in the format: {[symbol]_1: alert code snippet}
+    // parse the speific alert, use triggerAlert() to trigger notification
+    $('#set-alert').on('click', function( e ){
+        e.preventDefault();
+        // get the symbol name from parent div
+
+        // get price target from the form
+        
+        // trigger alert
+
+        // display alert under symbol name
+
+    })
+
+    // trigger a browser notification when an alert condition is met
+    function triggerAlert(symbol, target){
+        // chrome.notifications.create
+    }
 
 })

@@ -3,7 +3,7 @@
     "description": "Cryto real time price",
     "version": "1.0",
     "manifest_version": 3,
-    "permissions": ["storage", "activeTab", "scripting"],
+    "permissions": ["storage", "activeTab", "scripting", "notifications"],
     "host_permissions":[
         "https://min-api.cryptocompare.com/"
     ],
