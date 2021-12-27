@@ -257,20 +257,22 @@ $(document).ready(function(){
     })
 
     // TODO: trigger a browser notification when an alert condition is met
-    // this runs constantly to monitor the price of the symbol,
+    // this runs constantly in the background to monitor the price of the symbol,
     // and fire chrome notification when price target is reached
     function triggerAlert(symbol, target){
         // chrome.notifications.create, return a unique hash
         var hash = Date.now()
-        var notify_id =  hash
+        var notify_id = String(hash)
        
+        // TODO: make this run when price condition is met
         chrome.notifications.create(notify_id, {
             type: 'basic',
             iconUrl: '../images/tr128.png',
             title: 'Crypto Price Alert',
             message: symbol + " has reached $" + target + " USD",
-            priority: 2
-        })
+            priority: 2,
+            
+        }, function() {})
 
         return hash
     }
