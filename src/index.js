@@ -1,11 +1,13 @@
-
-
 $(document).ready(function(){
     const apiKey = "6dcd4f6925dee5654c6d1d564d97d4a922721b8258e5490e0dfc34fcb70c3606";
     const urlFirst = "https://min-api.cryptocompare.com/data/price?fsym=";
     const urlSecond = "&tsyms=";
     const form = $('#symform');
     
+    // update price of all symbols on the watchlist
+    $("body").ready(function(){    
+        loadSymbols();  
+    });
 
     // event triggered when "Check Price" is clicked, to check price of a symbol
     $('#symform').on('submit', function( e ){ 
@@ -51,13 +53,14 @@ $(document).ready(function(){
          
         })    
     }
-    var alreadyExist = 0;
+
     // add a symbol to watchlist and call API to display its price
     // update the price every hour
     function addToList(a){
         
         symbol = a;
         const url = urlFirst + symbol + urlSecond + 'USD&api_key=' + apiKey;
+
         fetch(url)
             .then(r => {
                 return r.text()
@@ -66,7 +69,8 @@ $(document).ready(function(){
                 var json = JSON.parse(response)
                 var price = json["USD"] 
                 if(price!=undefined){   
-                    // price and symbol are inserted into the item block
+                    // add a new div with id "watchlist-item-[symbol]"
+                    $('.error-watchlist').html("<p></p>")
                     var newId = 'watchlist-item' + "-" + symbol;
                     var newId2 = "#" + newId;
                     if($('body').find(newId2).length==0){
@@ -74,7 +78,7 @@ $(document).ready(function(){
                         $('#sample').attr('id', newId);
                     } 
                     
-                    // $('#watchlist-item').attr('id', newId);
+                    // modify template watchlist-item
                     var upperSymbol = symbol.toUpperCase();
                     $("#watchlist-item").find('#symbol-name').html("<span></span>");
                     $("#watchlist-item").find('#symbol-name').append(upperSymbol);
@@ -83,24 +87,115 @@ $(document).ready(function(){
                     $("#watchlist-item").find('#symbol-price').append(" USD");
                     
                     
-                    // append item to body 
+                    // get the html and append it to the "watchlist-item-[symbol]" div
                     var item = $('#watchlist-item-wrapper').html();
-                    console.log(item)
                     if($(newId2).find("#watchlist-item").length==0){
                         $(newId2).append(item)
                         $('#tooltip').css("display", "none")
+
+                        idStore = "#watchlist-item-" + symbol;
+                        var storeItem = $(idStore).prop('outerHTML');
+                        // store user data, the symbol itself, and the code snippet
+                        storeSymbol(String(symbol), storeItem);
+
+                        $('.error-watchlist').html("<p>Success!</p>")
+                        $('.error-watchlist').css("font-weight", "100")
+                        $('.error-watchlist').css("font-size", "12px")
+                        $('.error-watchlist').css("display", "inline-block")
+
+                    } else {
+                        // user already added this symbol
+                        $('.error-watchlist').html("<p>Already exists!</p>")
+                        $('.error-watchlist').css("font-weight", "100")
+                        $('.error-watchlist').css("font-size", "12px")
+                        $('.error-watchlist').css("display", "inline-block")
                     }
-                    $(newId2).find('#watchlist-item').css("display", "block")
-                    
-                    
-                    
-                    
+                    $(newId2).find('#watchlist-item').css("display", "block")               
                 } else {
-                    $('.error-watchlist').html("<p>Error!</p>")
+                    $('.error-watchlist').html("<p>Doesn't exist!</p>")
                     $('.error-watchlist').css("font-weight", "100")
                     $('.error-watchlist').css("font-size", "12px")
                     $('.error-watchlist').css("display", "inline-block")
                 }
             })    
     }
+
+
+    
+    // store a key value pair such that the key is "symbols"
+    // the value is an array, to keep track of all symbols on the watchlist
+    // Uses chrome storage to store the symbols on the watchlist
+    function storeSymbol(symbol, item){
+        var key = symbol,
+        jsonfile = {};
+        jsonfile[key] = item;
+        chrome.storage.sync.set(jsonfile, function() {
+            // console.log('Value is set to ' + symbol + item);
+        });
+
+        tmp = [];
+        chrome.storage.sync.get(['symbols'], function(result) {
+            if(result['symbols']==undefined){
+                chrome.storage.sync.set({'symbols':[]});
+            } else{
+                tmp = result['symbols']
+                if(!tmp.includes(symbol)){
+                    tmp.push(symbol)
+                }
+                chrome.storage.sync.set({'symbols': tmp});
+            }
+            // console.log(result)
+        });
+
+    }
+
+    // chrome.storage.sync.clear(); 
+
+
+    // Get from chrome storage all the symbols on the watchlist
+    // format is {symbol: code_snippet}
+    function loadSymbols(){
+        chrome.storage.sync.get(null, (items) => {
+            // Pass any observed errors down the promise chain.
+            if (chrome.runtime.lastError) {
+              return reject(chrome.runtime.lastError);
+            }
+
+            // Pass the data retrieved from storage down the promise chain.
+            // get all the symbols from watchlist
+            arr = items['symbols'];
+            if(arr.length>0){
+                for(var i=0; i<arr.length; i++){
+                    // for each symbol on the watchlist, append code snippet to body, and update price
+                    let sym1 = arr[i];
+                    let code = items[sym1];
+                    $('body').append(code);
+                    let id_name = "#watchlist-item-" + sym1;
+                    $('#tooltip').css("display", "none")
+                    // console.log(code)
+                    
+                    var json;
+                    const url = urlFirst + sym1 + urlSecond + 'USD&api_key=' + apiKey;
+                    fetch(url)
+                        .then(r => {
+                            return r.text()
+                        })
+                        .then(response => {
+                            json = JSON.parse(response)
+                            price = json["USD"]  
+                            console.log(sym1, ":", price)
+                            $(id_name).find('#symbol-price').html("<span></span>");
+                            $(id_name).find('#symbol-price').append(price);  
+                            $(id_name).find('#symbol-price').append(" USD"); 
+                            $(id_name).find('#watchlist-item').css("display", "block")        
+                        }) 
+            }
+        }
+          });
+              
+    }
+
+
+
+
 })
