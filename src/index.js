@@ -4,6 +4,9 @@ $(document).ready(function(){
     const urlSecond = "&tsyms=";
     const form = $('#symform');
     
+    // CLEAR SYNC STORAGE: 
+    // chrome.storage.sync.clear(); 
+
     // update price of all symbols on the watchlist
     $("body").ready(function(){    
         loadSymbols();      
@@ -129,9 +132,7 @@ $(document).ready(function(){
         var key = symbol,
         jsonfile = {};
         jsonfile[key] = item;
-        chrome.storage.sync.set(jsonfile, function() {
-            // console.log('Value is set to ' + symbol + item);
-        });
+        chrome.storage.sync.set(jsonfile, function() {});
 
         tmp = [];
         chrome.storage.sync.get(['symbols'], function(result) {
@@ -146,13 +147,13 @@ $(document).ready(function(){
             }
             // console.log(result)
         });
-
     }
 
 
     // Get from chrome storage all the symbols on the watchlist
     // format is {symbol: code_snippet}
     function loadSymbols(){
+        // load all symbols 
         chrome.storage.sync.get(null, (items) => {
             // Pass any observed errors down the promise chain.
             if (chrome.runtime.lastError) {
@@ -191,12 +192,39 @@ $(document).ready(function(){
             }
         });
 
-        //TODO: load existing alerts under each symbol using getAll notifications
-              
-    }
+        // load all alerts under each symbol 
+        chrome.storage.sync.get(null, (items) => {
+            // Pass any observed errors down the promise chain.
+            if (chrome.runtime.lastError) {
+              return reject(chrome.runtime.lastError);
+            }
 
-    // CLEAR SYNC STORAGE: 
-    // chrome.storage.sync.clear(); 
+            // get all the alerts and display them
+            arr = items['alerts'];
+            if(arr?.length>0){
+                for(var i=0; i<arr.length; i++){
+                    // for each symbol on the watchlist, append code snippet to body, and update price
+                    let notify_id = arr[i];
+                    
+                    var end = 0;
+                    for(var c=0; c < notify_id.length; c++){
+                        if(notify_id.charAt(c) == '_'){
+                            end = c;
+                            break
+                        }
+                    }
+                    var sym = notify_id.substr(0, c);
+                    console.log(sym)
+                    let code = items[notify_id];
+                    console.log(code)
+                    $('#watchlist-item-'+sym).find("#basic-info").after(code);
+                    
+
+                }
+            }
+        });
+
+    }
 
 
     // when user sets a price alert, store this alert in the sync storage of chrome
@@ -242,9 +270,31 @@ $(document).ready(function(){
             $(alertId).find(newId2).css("margin-bottom", "1px", "margin-top", "1px")
             $(alertId).find('#set-alert').remove()
             var deleteHash =  "delete-" + hash
-            $(alertId).find(newId2).after('<button id="set-alert" style="margin-left: 10px; margin-top:-2px;height: 30px; padding: 5px; display: inline" class="button-17">🗑</button>')
+            $(alertId).find(newId2).after('<button id="set-alert" style="margin-left: 10px; margin-top:-2px;height: 30px; padding: 5px; display: inline-block; margin-right: 90px" class="button-17">🗑</button>')
             $(alertId).find('#set-alert').attr('id', deleteHash)
-            $('body').on('click', '#'+deleteHash, function(e){ e.preventDefault(); deleteAlert(hash)})
+            var alertCode = $(alertId).find(newId2).prop('outerHTML')
+            + $(alertId).find("#"+deleteHash).prop('outerHTML');
+            console.log(alertCode)
+            var notify_id = symbol1 + "_" + String(hash) + "_" + target
+            $('body').on('click', '#'+deleteHash, function(e){ e.preventDefault(); deleteAlert(notify_id)})
+
+            // store alerts in chrome sync storage in the format {a_symbol_hash_priceTarget (var notify_id): code snippet}
+            chrome.storage.sync.get(['alerts'], function(result) {
+                if(result['alerts']==undefined){
+                    chrome.storage.sync.set({'alerts':[]});
+                } else{
+                    tmp = result['alerts']
+                    if(!tmp.includes(notify_id)){
+                        tmp.push(notify_id)
+                    }
+                    chrome.storage.sync.set({'alerts': tmp});
+                }
+                // console.log(result)
+            });
+            var key = notify_id,
+            jsonfile = {};
+            jsonfile[key] = alertCode;
+            chrome.storage.sync.set(jsonfile, function() {});
 
             // append the price-alert template and the bell button template
             $(alertId).find('#'+deleteHash).after(alertForm)
@@ -262,14 +312,15 @@ $(document).ready(function(){
     function triggerAlert(symbol, target){
         // chrome.notifications.create, return a unique hash
         var hash = Date.now()
-        var notify_id = String(hash)
+        var notify_id = symbol + "_" + String(hash) + "_" + target
        
         // TODO: make this run when price condition is met
+        
         chrome.notifications.create(notify_id, {
             type: 'basic',
             iconUrl: '../images/tr128.png',
             title: 'Crypto Price Alert',
-            message: symbol + " has reached $" + target + " USD",
+            message: symbol.toUpperCase() + " has reached $" + target + " USD",
             priority: 2,
             
         }, function() {})
@@ -279,10 +330,10 @@ $(document).ready(function(){
 
 
     // TODO: delete an alert 
-    function deleteAlert(hash){
-        // delete key:value pair in chrome storage
+    function deleteAlert(notify_id){
+        // TODO: delete key:value pair in chrome storage
         chrome.notifications.clear({
-            notificationId: hash
+            notificationId: notify_id
         })
         // remove in the front end
 
