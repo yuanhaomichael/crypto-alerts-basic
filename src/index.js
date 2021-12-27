@@ -26,6 +26,14 @@ $(document).ready(function(){
         addToList(sym);
     })
 
+    $(document).on('keydown', function(e){
+        if(e.which==13 && e.shiftKey){
+            e.preventDefault();
+            var sym = $("input").first().val()
+            addToList(sym); 
+        }
+    });
+
     // call API to get the price of a symbol
     function getPrice(a){
         symbol = a;
@@ -198,7 +206,7 @@ $(document).ready(function(){
             if (chrome.runtime.lastError) {
               return reject(chrome.runtime.lastError);
             }
-
+            console.log(items)
             // get all the alerts and display them
             arr = items['alerts'];
             if(arr?.length>0){
@@ -270,7 +278,7 @@ $(document).ready(function(){
             $(alertId).find(newId2).css("margin-bottom", "1px", "margin-top", "1px")
             $(alertId).find('#set-alert').remove()
             var deleteHash =  "delete-" + hash
-            $(alertId).find(newId2).after('<button id="set-alert" style="margin-left: 10px; margin-top:-2px;height: 30px; padding: 5px; display: inline-block; margin-right: 90px" class="button-17">🗑</button>')
+            $(alertId).find(newId2).after('<button id="set-alert" style="margin-left: 10px; margin-top:-2px;height: 30px; padding: 5px; display: inline-block" class="button-17">🗑</button><br>')
             $(alertId).find('#set-alert').attr('id', deleteHash)
             var alertCode = $(alertId).find(newId2).prop('outerHTML')
             + $(alertId).find("#"+deleteHash).prop('outerHTML');
@@ -300,12 +308,15 @@ $(document).ready(function(){
             $(alertId).find('#'+deleteHash).after(alertForm)
             $(alertId).find('#price-alert').css('display', 'inline-block', 'margin-top', '1px', 'margin-bottom', '0px')
             $(alertId).find('#price-alert').after(setAlertButton)
+            // $(alertId).find('#price-alert').before("<br>")
             $(alertId).find('#set-alert').css('margin-bottom', '0px')
             $(alertId).find('hr').css('margin-top', '0px')
         }
 
     })
 
+
+    // CALLED ON LINE 254
     // TODO: trigger a browser notification when an alert condition is met
     // this runs constantly in the background to monitor the price of the symbol,
     // and fire chrome notification when price target is reached
@@ -335,8 +346,18 @@ $(document).ready(function(){
         chrome.notifications.clear({
             notificationId: notify_id
         })
+        // chrome.storage.sync.remove(notify_id, function() {});
+
+
         // remove in the front end
 
     }
 
 })
+
+
+
+//TODO: 
+// - formating error with trash icon when user clicks
+// - delete alert in storage
+// - trigger alert when price target met
