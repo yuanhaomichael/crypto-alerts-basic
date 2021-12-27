@@ -6,7 +6,7 @@ $(document).ready(function(){
     
     // update price of all symbols on the watchlist
     $("body").ready(function(){    
-        loadSymbols();  
+        loadSymbols();      
     });
 
     // event triggered when "Check Price" is clicked, to check price of a symbol
@@ -190,22 +190,13 @@ $(document).ready(function(){
                 }
             }
         });
+
+        //TODO: load existing alerts under each symbol using getAll notifications
               
     }
 
     // CLEAR SYNC STORAGE: 
-    chrome.storage.sync.clear(); 
-
-   
-    // when "Add New Alert" button is clicked, add an empty alert form
-    $('body').on('click', '#add-new-alert', function( e ){
-        e.preventDefault();
-        // get the symbol name from parent div
-        console.log("hi")
-        // add the alert form under the symbol name
-    })
- 
-
+    // chrome.storage.sync.clear(); 
 
 
     // when user sets a price alert, store this alert in the sync storage of chrome
@@ -214,17 +205,85 @@ $(document).ready(function(){
     $('body').on('click', '#set-alert', function( e ){
         e.preventDefault();
         // get the symbol name from parent div
-        console.log("hey")
-        // get price target from the form
-        // trigger alert
+        var id = $(this).parent().parent().attr('id')
+        var len = id.length
+        var i = len-1
+        var symbol1
+        while(i >= 0){
+            if(id.charAt(i)==="-"){
+                symbol1 = id.substr(i+1, len-1)
+                
+                break
+            }
+            i--
+        }
 
-        // display alert under symbol name
+        // get price target from the form
+        var alertId = "#watchlist-item-" + symbol1
+        var target = $(alertId).find('input').val()
+        if(target > 0){
+            // store alert and trigger alert 
+            var hash = triggerAlert(symbol1, target)
+            
+            //clone price-alert template, change id of the previous "price-alert" to "price-alert-[hash]"
+            var alertForm = $(alertId).find('#price-alert').prop('outerHTML')
+            var setAlertButton = $(alertId).find('#set-alert').prop('outerHTML')
+
+            var oldId = $(alertId).find('#price-alert').attr('id')
+            var newId = oldId + "-" + String(hash)
+            var newId2 = "#"+ newId
+            $(alertId).find('#price-alert').attr('id', newId)
+
+            // display alert under symbol name, toggle alert button to delete button
+            var text = "Price target alert at $" + target + " USD"
+            $(alertId).find(newId2).html('<p></p>')
+            $(alertId).find(newId2).append(text)
+            $(alertId).find(newId2).css("display", "inline")
+            $(alertId).find(newId2).css("margin-bottom", "1px", "margin-top", "1px")
+            $(alertId).find('#set-alert').remove()
+            var deleteHash =  "delete-" + hash
+            $(alertId).find(newId2).after('<button id="set-alert" style="margin-left: 10px; margin-top:-2px;height: 30px; padding: 5px; display: inline" class="button-17">🗑</button>')
+            $(alertId).find('#set-alert').attr('id', deleteHash)
+            $('body').on('click', '#'+deleteHash, function(e){ e.preventDefault(); deleteAlert(hash)})
+
+            // append the price-alert template and the bell button template
+            $(alertId).find('#'+deleteHash).after(alertForm)
+            $(alertId).find('#price-alert').css('display', 'inline-block', 'margin-top', '1px', 'margin-bottom', '0px')
+            $(alertId).find('#price-alert').after(setAlertButton)
+            $(alertId).find('#set-alert').css('margin-bottom', '0px')
+            $(alertId).find('hr').css('margin-top', '0px')
+        }
 
     })
 
-    // trigger a browser notification when an alert condition is met
+    // TODO: trigger a browser notification when an alert condition is met
+    // this runs constantly to monitor the price of the symbol,
+    // and fire chrome notification when price target is reached
     function triggerAlert(symbol, target){
-        // chrome.notifications.create
+        // chrome.notifications.create, return a unique hash
+        var hash = Date.now()
+        var notify_id =  hash
+       
+        chrome.notifications.create(notify_id, {
+            type: 'basic',
+            iconUrl: '../images/tr128.png',
+            title: 'Crypto Price Alert',
+            message: symbol + " has reached $" + target + " USD",
+            priority: 2
+        })
+
+        return hash
+    }
+
+
+    // TODO: delete an alert 
+    function deleteAlert(hash){
+        // delete key:value pair in chrome storage
+        chrome.notifications.clear({
+            notificationId: hash
+        })
+        // remove in the front end
+
     }
 
 })
