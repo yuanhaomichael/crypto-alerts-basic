@@ -35,7 +35,7 @@ $(document).ready(function(){
             .then(response => {
                 var json = JSON.parse(response)
                 var price = json["USD"] 
-                console.log(price)
+                // console.log(price)
                 if(price!=undefined){   
                     $('.error').html("")
                     $('#price').html("<p></p>")
@@ -162,7 +162,7 @@ $(document).ready(function(){
             // Pass the data retrieved from storage down the promise chain.
             // get all the symbols from watchlist
             arr = items['symbols'];
-            if(arr.length>0){
+            if(arr?.length>0){
                 for(var i=0; i<arr.length; i++){
                     // for each symbol on the watchlist, append code snippet to body, and update price
                     let sym1 = arr[i];
@@ -181,11 +181,11 @@ $(document).ready(function(){
                         .then(response => {
                             json = JSON.parse(response)
                             price = json["USD"]  
-                            console.log(sym1, ":", price)
-                            $(id_name).find('#symbol-price').html("<span></span>");
+                            // console.log(sym1, ":", price)
+                            $(id_name).find('#symbol-price').html("<span></span>"); 
                             $(id_name).find('#symbol-price').append(price);  
                             $(id_name).find('#symbol-price').append(" USD"); 
-                            $(id_name).find('#watchlist-item').css("display", "block")        
+                            $(id_name).find('#watchlist-item').css("display", "block") 
                         }) 
                 }
             }
@@ -194,28 +194,28 @@ $(document).ready(function(){
     }
 
     // CLEAR SYNC STORAGE: 
-    // chrome.storage.sync.clear(); 
+    chrome.storage.sync.clear(); 
 
-
+   
     // when "Add New Alert" button is clicked, add an empty alert form
-    $('#add-new-alert').on('click', function( e ){
+    $('body').on('click', '#add-new-alert', function( e ){
         e.preventDefault();
         // get the symbol name from parent div
-
+        console.log("hi")
         // add the alert form under the symbol name
-
     })
+ 
+
 
 
     // when user sets a price alert, store this alert in the sync storage of chrome
     // in the format: {[symbol]_1: alert code snippet}
     // parse the speific alert, use triggerAlert() to trigger notification
-    $('#set-alert').on('click', function( e ){
+    $('body').on('click', '#set-alert', function( e ){
         e.preventDefault();
         // get the symbol name from parent div
-
+        console.log("hey")
         // get price target from the form
-        
         // trigger alert
 
         // display alert under symbol name

@@ -25,21 +25,26 @@
         <h2 style="margin-top: 40px;">Watchlist</h2>
         <hr style="margin-top: 10px">
         <p  id="tooltip" style="margin-top: 40px; color: #3A3B3C; font-size: 14px;">To set price alerts, add a crypto to the watchlist first.</p>
+        
+        
         <!-- an item in the watchlist -->
         <div id="watchlist-item-wrapper">
             <div id="watchlist-item" style="display: none; margin-top: 10px; font-weight: 100; font-size:12px; margin-bottom: 20px;">
+                
                 <!-- info about the symbol -->
                 <div id="basic-info">
                     <span id="symbol-name">SOL</span>  
                     <span id="symbol-price">200 USD</span>
                 </div>
+
                 <!-- price alert form -->
-                <form id="price-alert">
+                <form id="price-alert" style="display: inline;">
                     <label>⚑ when price changes to</label>
                     <input style="width: 25px; height: 11px; margin-left: 2px; margin-right:2px" id="price-target" type="text"/>
                     <span>USD</span>
-                    <button id="set-alert" style="margin-left: 20px; height: 30px; padding: 5px" class="button-17">🔔</button>
                 </form>
+                <button id="set-alert" type="submit" style="margin-left: 20px; height: 30px; padding: 5px" class="button-17">🔔</button>
+                
                 <!-- add new alert -->
                 <button id="add-new-alert" style="height: 25px; width: 100; padding-left: 19px; padding-right:19px" class="button-17">Add New Alert</button>
                 <hr style="margin-top: 20px;">
