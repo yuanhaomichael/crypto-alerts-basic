@@ -222,9 +222,9 @@ $(document).ready(function(){
                         }
                     }
                     var sym = notify_id.substr(0, c);
-                    console.log(sym)
+                    // console.log(sym)
                     let code = items[notify_id];
-                    console.log(code)
+                    // console.log(code)
                     $('#watchlist-item-'+sym).find("#basic-info").after(code);
                     
 
@@ -278,13 +278,18 @@ $(document).ready(function(){
             $(alertId).find(newId2).css("margin-bottom", "1px", "margin-top", "1px")
             $(alertId).find('#set-alert').remove()
             var deleteHash =  "delete-" + hash
-            $(alertId).find(newId2).after('<button id="set-alert" style="margin-left: 10px; margin-top:-2px;height: 30px; padding: 5px; display: inline-block" class="button-17">🗑</button><br>')
+            $(alertId).find("br").remove();
+            $(alertId).find(newId2).after('<button id="set-alert" style="margin-left: 10px; margin-top:-2px;height: 30px; padding: 5px; display: inline-block" class="button-17"> 🗑</button><br>')
             $(alertId).find('#set-alert').attr('id', deleteHash)
             var alertCode = $(alertId).find(newId2).prop('outerHTML')
             + $(alertId).find("#"+deleteHash).prop('outerHTML');
-            console.log(alertCode)
+            // console.log(alertCode)
             var notify_id = symbol1 + "_" + String(hash) + "_" + target
-            $('body').on('click', '#'+deleteHash, function(e){ e.preventDefault(); deleteAlert(notify_id)})
+
+
+            $('body').on('click', '#'+deleteHash, function(e){
+                deleteAlert(notify_id)
+           })
 
             // store alerts in chrome sync storage in the format {a_symbol_hash_priceTarget (var notify_id): code snippet}
             chrome.storage.sync.get(['alerts'], function(result) {
@@ -315,7 +320,6 @@ $(document).ready(function(){
 
     })
 
-
     // CALLED ON LINE 254
     // TODO: trigger a browser notification when an alert condition is met
     // this runs constantly in the background to monitor the price of the symbol,
@@ -340,16 +344,58 @@ $(document).ready(function(){
     }
 
 
+    $('body').on('click', "#delete-1640641458297", function(){
+        deleteAlert("sol_1640641458297_1")
+    })
     // TODO: delete an alert 
     function deleteAlert(notify_id){
         // TODO: delete key:value pair in chrome storage
-        chrome.notifications.clear({
-            notificationId: notify_id
+        // chrome.notifications.clear({
+        //     notificationId: notify_id
+        // })
+       
+        // remove the key that is named notify_id and remove the notify_id in the alerts array
+        chrome.storage.sync.remove(notify_id, function(item) {
+            // console.log("Removed")
+        });
+        chrome.storage.sync.get(['alerts'], function(result) {
+            if(result['alerts']==undefined){
+                chrome.storage.sync.set({'alerts':[]});
+            } else{
+                tmp = result['alerts']
+                if(tmp.includes(notify_id)){
+                    var filtered = tmp.filter(function(value, index, arr){ 
+                        return value!=notify_id ;
+                    });
+                }
+                chrome.storage.sync.set({'alerts': filtered});
+                // console.log(filtered)
+            }
         })
-        // chrome.storage.sync.remove(notify_id, function() {});
+        
 
 
-        // remove in the front end
+        // remove in the front end by getting the hash, remove #delete-hash and price-alert-hash
+        var begin;
+        for(var c=0; c < notify_id.length; c++){
+            if(notify_id.charAt(c) == '_'){
+                begin = c+1;
+                break
+            }
+        }
+        var x = notify_id.length - 1
+        var hash;
+        while(x >= 0){
+            if(notify_id.charAt(x)=='_'){
+                hash = notify_id.substring(begin, x);
+                break
+            }
+            x = x-1;   
+        }
+
+        // console.log(hash)
+        $('#delete-'+hash).remove();
+        $('#price-alert-'+hash).remove();
 
     }
 
@@ -358,6 +404,5 @@ $(document).ready(function(){
 
 
 //TODO: 
-// - formating error with trash icon when user clicks
-// - delete alert in storage
+// - delete alert on click nested function doesnt work when reloading from chrome storagge
 // - trigger alert when price target met
