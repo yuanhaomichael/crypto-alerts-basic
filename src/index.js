@@ -158,6 +158,95 @@ $(document).ready(function(){
     }
 
 
+    
+    // when user sets a price alert, store this alert in the sync storage of chrome
+    // in the format: {[symbol]_1: alert code snippet}
+    // parse the speific alert, use triggerAlert() to trigger notification
+    $('body').on('click', '#set-alert', function( e ){
+        e.preventDefault();
+        // get the symbol name from parent div
+        var id = $(this).parent().parent().attr('id')
+        var len = id.length
+        var i = len-1
+        var symbol1
+        while(i >= 0){
+            if(id.charAt(i)==="-"){
+                symbol1 = id.substr(i+1, len-1)
+                
+                break
+            }
+            i--
+        }
+
+        // get price target from the form
+        var alertId = "#watchlist-item-" + symbol1
+        var target = $(alertId).find('input').val()
+        if(target > 0){
+            // store alert and trigger alert 
+            var hash = triggerAlert(symbol1, target)
+            
+            //clone price-alert template, change id of the previous "price-alert" to "price-alert-[hash]"
+            var alertForm = $(alertId).find('#price-alert').prop('outerHTML')
+            var setAlertButton = $(alertId).find('#set-alert').prop('outerHTML')
+
+            var oldId = $(alertId).find('#price-alert').attr('id')
+            var newId = oldId + "-" + String(hash)
+            var newId2 = "#"+ newId
+            $(alertId).find('#price-alert').attr('id', newId)
+
+            // display alert under symbol name, toggle alert button to delete button
+            var text = "Price target alert at $" + target + " USD"
+            $(alertId).find(newId2).html('<p></p>')
+            $(alertId).find(newId2).append(text)
+            $(alertId).find(newId2).css("display", "inline")
+            $(alertId).find(newId2).css("margin-bottom", "1px", "margin-top", "1px")
+            $(alertId).find('#set-alert').remove()
+            var deleteHash =  "delete-" + hash
+            $(alertId).find("br").remove();
+            $(alertId).find(newId2).after('<button id="set-alert" style="margin-left: 10px; margin-top:-2px;height: 30px; padding: 5px; display: inline-block" class="button-17"> 🗑</button><br>')
+            $(alertId).find('#set-alert').attr('id', deleteHash)
+            var alertCode = $(alertId).find(newId2).prop('outerHTML')
+            + $(alertId).find("#"+deleteHash).prop('outerHTML');
+            // console.log(alertCode)
+            var notify_id = symbol1 + "_" + String(hash) + "_" + target
+
+
+            $('body').on('click', '#'+deleteHash, function(e){
+                deleteAlert(notify_id)
+           })
+        //    $('#'+deleteHash).on('click', function(e){
+        //         deleteAlert(notify_id)
+        //     })
+
+            // store alerts in chrome sync storage in the format {a_symbol_hash_priceTarget (var notify_id): code snippet}
+            chrome.storage.sync.get(['alerts'], function(result) {
+                if(result['alerts']==undefined){
+                    chrome.storage.sync.set({'alerts':[]});
+                } else{
+                    tmp = result['alerts']
+                    if(!tmp.includes(notify_id)){
+                        tmp.push(notify_id)
+                    }
+                    chrome.storage.sync.set({'alerts': tmp});
+                }
+                // console.log(result)
+            });
+            var key = notify_id,
+            jsonfile = {};
+            jsonfile[key] = alertCode;
+            chrome.storage.sync.set(jsonfile, function() {});
+
+            // append the price-alert template and the bell button template
+            $(alertId).find('#'+deleteHash).after(alertForm)
+            $(alertId).find('#price-alert').css('display', 'inline-block', 'margin-top', '1px', 'margin-bottom', '0px')
+            $(alertId).find('#price-alert').after(setAlertButton)
+            // $(alertId).find('#price-alert').before("<br>")
+            $(alertId).find('#set-alert').css('margin-bottom', '0px')
+            $(alertId).find('hr').css('margin-top', '0px')
+        }
+
+    })
+
     // Get from chrome storage all the symbols on the watchlist
     // format is {symbol: code_snippet}
     function loadSymbols(){
@@ -235,90 +324,6 @@ $(document).ready(function(){
     }
 
 
-    // when user sets a price alert, store this alert in the sync storage of chrome
-    // in the format: {[symbol]_1: alert code snippet}
-    // parse the speific alert, use triggerAlert() to trigger notification
-    $('body').on('click', '#set-alert', function( e ){
-        e.preventDefault();
-        // get the symbol name from parent div
-        var id = $(this).parent().parent().attr('id')
-        var len = id.length
-        var i = len-1
-        var symbol1
-        while(i >= 0){
-            if(id.charAt(i)==="-"){
-                symbol1 = id.substr(i+1, len-1)
-                
-                break
-            }
-            i--
-        }
-
-        // get price target from the form
-        var alertId = "#watchlist-item-" + symbol1
-        var target = $(alertId).find('input').val()
-        if(target > 0){
-            // store alert and trigger alert 
-            var hash = triggerAlert(symbol1, target)
-            
-            //clone price-alert template, change id of the previous "price-alert" to "price-alert-[hash]"
-            var alertForm = $(alertId).find('#price-alert').prop('outerHTML')
-            var setAlertButton = $(alertId).find('#set-alert').prop('outerHTML')
-
-            var oldId = $(alertId).find('#price-alert').attr('id')
-            var newId = oldId + "-" + String(hash)
-            var newId2 = "#"+ newId
-            $(alertId).find('#price-alert').attr('id', newId)
-
-            // display alert under symbol name, toggle alert button to delete button
-            var text = "Price target alert at $" + target + " USD"
-            $(alertId).find(newId2).html('<p></p>')
-            $(alertId).find(newId2).append(text)
-            $(alertId).find(newId2).css("display", "inline")
-            $(alertId).find(newId2).css("margin-bottom", "1px", "margin-top", "1px")
-            $(alertId).find('#set-alert').remove()
-            var deleteHash =  "delete-" + hash
-            $(alertId).find("br").remove();
-            $(alertId).find(newId2).after('<button id="set-alert" style="margin-left: 10px; margin-top:-2px;height: 30px; padding: 5px; display: inline-block" class="button-17"> 🗑</button><br>')
-            $(alertId).find('#set-alert').attr('id', deleteHash)
-            var alertCode = $(alertId).find(newId2).prop('outerHTML')
-            + $(alertId).find("#"+deleteHash).prop('outerHTML');
-            // console.log(alertCode)
-            var notify_id = symbol1 + "_" + String(hash) + "_" + target
-
-
-            $('body').on('click', '#'+deleteHash, function(e){
-                deleteAlert(notify_id)
-           })
-
-            // store alerts in chrome sync storage in the format {a_symbol_hash_priceTarget (var notify_id): code snippet}
-            chrome.storage.sync.get(['alerts'], function(result) {
-                if(result['alerts']==undefined){
-                    chrome.storage.sync.set({'alerts':[]});
-                } else{
-                    tmp = result['alerts']
-                    if(!tmp.includes(notify_id)){
-                        tmp.push(notify_id)
-                    }
-                    chrome.storage.sync.set({'alerts': tmp});
-                }
-                // console.log(result)
-            });
-            var key = notify_id,
-            jsonfile = {};
-            jsonfile[key] = alertCode;
-            chrome.storage.sync.set(jsonfile, function() {});
-
-            // append the price-alert template and the bell button template
-            $(alertId).find('#'+deleteHash).after(alertForm)
-            $(alertId).find('#price-alert').css('display', 'inline-block', 'margin-top', '1px', 'margin-bottom', '0px')
-            $(alertId).find('#price-alert').after(setAlertButton)
-            // $(alertId).find('#price-alert').before("<br>")
-            $(alertId).find('#set-alert').css('margin-bottom', '0px')
-            $(alertId).find('hr').css('margin-top', '0px')
-        }
-
-    })
 
     // CALLED ON LINE 254
     // TODO: trigger a browser notification when an alert condition is met
@@ -349,7 +354,7 @@ $(document).ready(function(){
     })
     // TODO: delete an alert 
     function deleteAlert(notify_id){
-        // TODO: delete key:value pair in chrome storage
+ 
         // chrome.notifications.clear({
         //     notificationId: notify_id
         // })
@@ -402,7 +407,6 @@ $(document).ready(function(){
 })
 
 
-
 //TODO: 
-// - delete alert on click nested function doesnt work when reloading from chrome storagge
+// - delete alert onClick nested function doesnt work after reloading from chrome storage
 // - trigger alert when price target met

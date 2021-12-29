@@ -1,6 +1,6 @@
 {
-    "name": "Crypto Price",
-    "description": "Cryto real time price",
+    "name": "Sympto: Crypto Price Alerts",
+    "description": "Get real time price for cryptocurrencies and set price alerts",
     "version": "1.0",
     "manifest_version": 3,
     "permissions": ["storage", "activeTab", "scripting", "notifications"],
