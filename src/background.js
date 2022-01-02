@@ -1,4 +1,4 @@
-const period = 0.2; // in minutes
+const period = 120; // in minutes
 
 chrome.runtime.onInstalled.addListener(function(){
     runAlertSystem();
@@ -32,7 +32,6 @@ function runAlertSystem(){
     let price_map = new Map();
     let alerts_map = new Map();
     chrome.alarms.onAlarm.addListener(() => {
-        
         console.log("alarm fired")
         // fetch from chrome sync storage all price alerts (symbol, price_a, notify_id)
         chrome.storage.sync.get(['alerts'], function(result) {
@@ -48,6 +47,7 @@ function runAlertSystem(){
             for(var i = 0; i < alerts.length; i++){
                 // parse the symbol
                 notify_id = alerts[i]
+                console.log(notify_id)
                 var sym_end;
                 for(var c=0; c < notify_id.length; c++){
                     if(notify_id.charAt(c) == '_'){
@@ -68,7 +68,7 @@ function runAlertSystem(){
                     x = x-1;   
                 }
                 price = parseFloat(notify_id.substring(price_start, notify_id.length))
-                // console.log(price)
+                
                 // append alert price to the alerts_map
                 if(alerts_map.get(symbol)==undefined){
                     alerts_map.set(symbol, [])
@@ -134,9 +134,62 @@ function runAlertSystem(){
             if(closest < 5 && current < end_target){
                 console.log("notify!")
                 runNotification(String(Date.now()), end_target, sym)
+                removeAlert(sym, end_target)
             }
         }
 
     });
 }
 
+
+function removeAlert(sym, price_target){
+    chrome.storage.sync.get(null, (items) => {
+        if (chrome.runtime.lastError) {
+            return reject(chrome.runtime.lastError);
+        }
+        alerts = items['alerts'];
+        for(var i = 0; i < alerts.length; i++){
+            // parse the symbol
+            notify_id = alerts[i]
+            var sym_end;
+            for(var c=0; c < notify_id.length; c++){
+                if(notify_id.charAt(c) == '_'){
+                    sym_end = c;
+                    break
+                }
+            }
+            symbol = notify_id.substring(0,sym_end)
+            
+            // parse the price
+            var price_start
+            var x = notify_id.length - 1
+            while(x >= 0){
+                if(notify_id.charAt(x)=='_'){
+                    price_start = x+1
+                    break
+                }
+                x = x-1;   
+            }
+            price = parseFloat(notify_id.substring(price_start, notify_id.length))
+            hash = notify_id.substring(sym_end+1, price_start-1)
+
+            if(sym==symbol && price==price_target){
+                //remove alert key value pair from storage
+                chrome.storage.sync.remove(notify_id, function(item) {
+                    console.log("Removed key value pair")
+                    // remove alerts on the UI right away
+                    // price_alert_id = "price-alert-" + hash
+                    // delete_id =  "delete-" + hash
+                    // $( price_alert_id ).remove();
+                    // $( delete_id ).remove();
+                });
+                //remove alert from alert array in storage
+                index = alerts.indexOf(notify_id)
+                if(index>-1){
+                    alerts.splice(index,1)
+                }
+                chrome.storage.sync.set({'alerts':alerts});
+            }
+        }
+    })
+}

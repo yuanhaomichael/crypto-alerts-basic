@@ -144,12 +144,16 @@ $(document).ready(function(){
 
         tmp = [];
         chrome.storage.sync.get(['symbols'], function(result) {
-            if(result['symbols']==undefined){
-                chrome.storage.sync.set({'symbols':[]});
+            if(result['symbols']==undefined){               
+                tmp = []
+                tmp.push(symbol)
+                console.log("pushed", symbol)
+                chrome.storage.sync.set({'symbols': tmp});  
             } else{
                 tmp = result['symbols']
                 if(!tmp.includes(symbol)){
                     tmp.push(symbol)
+                    console.log("pushed", symbol)
                 }
                 chrome.storage.sync.set({'symbols': tmp});
             }
@@ -183,7 +187,7 @@ $(document).ready(function(){
         var target = $(alertId).find('input').val()
         if(target > 0){
             // store alert and trigger alert 
-            var hash = triggerAlert(symbol1, target)
+            var hash = generateHash()
             
             //clone price-alert template, change id of the previous "price-alert" to "price-alert-[hash]"
             var alertForm = $(alertId).find('#price-alert').prop('outerHTML')
@@ -221,7 +225,9 @@ $(document).ready(function(){
             // store alerts in chrome sync storage in the format {a_symbol_hash_priceTarget (var notify_id): code snippet}
             chrome.storage.sync.get(['alerts'], function(result) {
                 if(result['alerts']==undefined){
-                    chrome.storage.sync.set({'alerts':[]});
+                    tmp = []
+                    tmp.push(notify_id)
+                    chrome.storage.sync.set({'alerts': tmp});
                 } else{
                     tmp = result['alerts']
                     if(!tmp.includes(notify_id)){
@@ -324,35 +330,17 @@ $(document).ready(function(){
     }
 
 
-
-    // CALLED ON LINE 254
-    // TODO: trigger a browser notification when an alert condition is met
-    // this runs constantly in the background to monitor the price of the symbol,
-    // and fire chrome notification when price target is reached
-    function triggerAlert(symbol, target){
-        // chrome.notifications.create, return a unique hash
+    function generateHash(){
+        //return a unique hash
         var hash = Date.now()
-        // var notify_id = symbol + "_" + String(hash) + "_" + target
-       
-        // TODO: make this run when price condition is met
-        
-        // chrome.notifications.create(notify_id, {
-        //     type: 'basic',
-        //     iconUrl: '../images/tr128.png',
-        //     title: 'Crypto Price Alert',
-        //     message: symbol.toUpperCase() + " has reached $" + target + " USD",
-        //     priority: 2,
-            
-        // }, function() {})
-
         return hash
     }
 
 
     // for testing ONLY
-    $('body').on('click', "#delete-1640641458297", function(){
-        deleteAlert("sol_1640641458297_1")
-    })
+    // $('body').on('click', "#delete-1640641458297", function(){
+    //     deleteAlert("sol_1640641458297_1")
+    // })
     // TODO: delete an alert 
     function deleteAlert(notify_id){
  
@@ -378,8 +366,6 @@ $(document).ready(function(){
                 // console.log(filtered)
             }
         })
-        
-
 
         // remove in the front end by getting the hash, remove #delete-hash and price-alert-hash
         var begin;
@@ -409,7 +395,4 @@ $(document).ready(function(){
 
 
 //TODO: 
-// - Remove the alert from storage after sending notification
-// - delete alert onClick nested function doesnt work after reloading from chrome storage
-// - first symbol entered to the watchlist is not stored nor displayed (cleared on refresh)
-// - first alert entered for a symbol on the watchlist is not stored (still displayed on UI)
+// - delete alert onClick nested function doesn't work after reloading from chrome storage
