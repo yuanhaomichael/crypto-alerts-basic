@@ -3,7 +3,7 @@
     "description": "Get real time price for cryptocurrencies and set price alerts",
     "version": "1.0",
     "manifest_version": 3,
-    "permissions": ["storage", "notifications", "alarms"],
+    "permissions": ["storage", "tabs", "notifications", "alarms"],
     "host_permissions":[
         "https://min-api.cryptocompare.com/"
     ],
