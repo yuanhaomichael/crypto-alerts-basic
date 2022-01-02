@@ -1,16 +1,17 @@
 {
-    "name": "Sympto: Crypto Price Alerts",
+    "name": "Sympto: Crypto Watchlist & Price Alerts",
     "description": "Get real time price for cryptocurrencies and set price alerts",
     "version": "1.0",
     "manifest_version": 3,
-    "permissions": ["storage", "activeTab", "scripting", "notifications"],
+    "permissions": ["storage", "activeTab", "scripting", "notifications", "alarms"],
     "host_permissions":[
         "https://min-api.cryptocompare.com/"
     ],
+    "background": {
+      "service_worker": "./src/background.js"
+    },
     "action": {
-  
       "default_popup": "./dist/popup.html",
-  
       "default_icon": {
         "16": "/images/tr16.png",
         "32": "/images/tr32.png",

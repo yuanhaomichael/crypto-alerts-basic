@@ -195,7 +195,7 @@ $(document).ready(function(){
             $(alertId).find('#price-alert').attr('id', newId)
 
             // display alert under symbol name, toggle alert button to delete button
-            var text = "Price target alert at $" + target + " USD"
+            var text = "Price alert at $" + target + " USD"
             $(alertId).find(newId2).html('<p></p>')
             $(alertId).find(newId2).append(text)
             $(alertId).find(newId2).css("display", "inline")
@@ -332,23 +332,24 @@ $(document).ready(function(){
     function triggerAlert(symbol, target){
         // chrome.notifications.create, return a unique hash
         var hash = Date.now()
-        var notify_id = symbol + "_" + String(hash) + "_" + target
+        // var notify_id = symbol + "_" + String(hash) + "_" + target
        
         // TODO: make this run when price condition is met
         
-        chrome.notifications.create(notify_id, {
-            type: 'basic',
-            iconUrl: '../images/tr128.png',
-            title: 'Crypto Price Alert',
-            message: symbol.toUpperCase() + " has reached $" + target + " USD",
-            priority: 2,
+        // chrome.notifications.create(notify_id, {
+        //     type: 'basic',
+        //     iconUrl: '../images/tr128.png',
+        //     title: 'Crypto Price Alert',
+        //     message: symbol.toUpperCase() + " has reached $" + target + " USD",
+        //     priority: 2,
             
-        }, function() {})
+        // }, function() {})
 
         return hash
     }
 
 
+    // for testing ONLY
     $('body').on('click', "#delete-1640641458297", function(){
         deleteAlert("sol_1640641458297_1")
     })
@@ -408,5 +409,7 @@ $(document).ready(function(){
 
 
 //TODO: 
+// - Remove the alert from storage after sending notification
 // - delete alert onClick nested function doesnt work after reloading from chrome storage
-// - trigger alert when price target met
+// - first symbol entered to the watchlist is not stored nor displayed (cleared on refresh)
+// - first alert entered for a symbol on the watchlist is not stored (still displayed on UI)
