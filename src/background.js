@@ -1,4 +1,4 @@
-const period = 0.1; // in minutes
+const period = 60; // in minutes
 
 chrome.runtime.onInstalled.addListener(function(){
     runAlertSystem();
@@ -7,10 +7,6 @@ chrome.runtime.onInstalled.addListener(function(){
 chrome.runtime.onStartup.addListener(function(){
     runAlertSystem();
 })
-
-chrome.action.onClicked.addListener(function(tab) {
-    deleteOnClick();
-});
 
 
 function runNotification(notify_id, price_a, symbol){
@@ -198,60 +194,3 @@ function removeAlert(sym, price_target){
     })
 }
 
-function deleteOnClick(){
-    // for each alert, get its hash and create an onclick event
-    // such that when trashcan icon is clicked, alert UI & alert get removed
-    chrome.storage.sync.get(null, (items) => {
-        if (chrome.runtime.lastError) {
-            return reject(chrome.runtime.lastError);
-        }
-        alerts = []
-        if(items['alerts']==undefined){
-            chrome.storage.sync.set({'alerts':[]});
-        } else{
-            alerts = items['alerts']
-        }
-        for(var i = 0; i < alerts.length; i++){
-            // parse the symbol
-            notify_id = alerts[i]
-            var sym_end;
-            for(var c=0; c < notify_id.length; c++){
-                if(notify_id.charAt(c) == '_'){
-                    sym_end = c;
-                    break
-                }
-            }
-            // parse the price
-            var price_start
-            var x = notify_id.length - 1
-            while(x >= 0){
-                if(notify_id.charAt(x)=='_'){
-                    price_start = x+1
-                    break
-                }
-                x = x-1;   
-            }
-
-            hash = notify_id.substring(sym_end+1, price_start-1)
-            delete_id =  "delete-" + hash
-            price_alert_id = "price-alert-" + hash
-
-            $('body').on('click', '#'+delete_id, function(e){
-                console.log("Removing alert")
-                //remove alert key value pair from storage
-                chrome.storage.sync.remove(notify_id, function(item) {
-                    console.log("Removed alert onclick")
-                    //remove alert from UI
-                    $( price_alert_id ).remove();
-                    $( delete_id ).remove();
-                });
-                //remove alert from alert array in storage
-                index = alerts.indexOf(notify_id)
-                if(index>-1){
-                    alerts.splice(index,1)
-                }
-                chrome.storage.sync.set({'alerts':alerts});
-            })
-        }
-    })
-}

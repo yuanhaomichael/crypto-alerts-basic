@@ -12,6 +12,53 @@ $(document).ready(function(){
         loadSymbols();      
     });
 
+
+
+    // hear onclick event of delete icon
+    $('body').on('click', '#delete', function(e){
+        console.log("working")
+        // retrieve alert's notify_id by parsing id and parent id
+        alert_id = $(this).prevAll('form').first().attr('id')
+        parent_id = $(this).parent().parent().attr('id')
+        
+        var x = alert_id.length - 1
+        var alert_hash
+        while(x >= 0){
+            if(alert_id.charAt(x)=='-'){
+                alert_hash = alert_id.substring(x+1, alert_id.length);
+                break
+            }
+            x = x-1;   
+        }
+        var x = parent_id.length - 1
+        var cur_symbol = 0
+        while(x >= 0){
+            if(parent_id.charAt(x)=='-'){
+                cur_symbol = parent_id.substring(x+1, parent_id.length);
+                break
+            }
+            x = x-1;   
+        }
+        var price = 0;
+        for(var c=0; c < alert_id.length; c++){
+            if(alert_id.charAt(c) == '-'){
+                price = parseFloat(alert_id.substring(0,c))
+                break
+            }
+        }
+        
+        console.log(cur_symbol, price, alert_hash)
+
+        notify_id = cur_symbol + "_" + alert_hash + "_" + String(price)
+        deleteAlert(notify_id)
+
+        // delete the UI
+        $(this).prevAll('form').first().remove();
+        $(this).remove()
+    })
+
+
+
     // event triggered when "Check Price" is clicked, to check price of a symbol
     $('#symform').on('submit', function( e ){ 
         e.preventDefault();
@@ -19,6 +66,8 @@ $(document).ready(function(){
         getPrice(sym);
     });
  
+
+
     // event triggered when "Add to Watchlist" is clicked, to add a symbol to watchlist
     $('#add-to-watchlist').on('click', function( e ){
         e.preventDefault();
@@ -33,6 +82,9 @@ $(document).ready(function(){
             addToList(sym); 
         }
     });
+
+
+
 
     // call API to get the price of a symbol
     function getPrice(a){
@@ -64,6 +116,9 @@ $(document).ready(function(){
          
         })    
     }
+
+
+
 
     // add a symbol to watchlist and call API to display its price
     // update the price every hour
@@ -133,6 +188,8 @@ $(document).ready(function(){
 
 
     
+
+
     // store a key value pair such that the key is "symbols"
     // the value is an array, to keep track of all symbols on the watchlist
     // Uses chrome storage to store the symbols on the watchlist
@@ -160,6 +217,8 @@ $(document).ready(function(){
             // console.log(result)
         });
     }
+
+
 
 
     
@@ -194,7 +253,7 @@ $(document).ready(function(){
             var setAlertButton = $(alertId).find('#set-alert').prop('outerHTML')
 
             var oldId = $(alertId).find('#price-alert').attr('id')
-            var newId = oldId + "-" + String(hash)
+            var newId = String(target) + "-" + oldId + "-" + String(hash)
             var newId2 = "#"+ newId
             $(alertId).find('#price-alert').attr('id', newId)
 
@@ -205,7 +264,7 @@ $(document).ready(function(){
             $(alertId).find(newId2).css("display", "inline")
             $(alertId).find(newId2).css("margin-bottom", "1px", "margin-top", "1px")
             $(alertId).find('#set-alert').remove()
-            var deleteHash =  "delete-" + hash
+            var deleteHash =  "delete"
             $(alertId).find("br").remove();
             $(alertId).find(newId2).after('<button id="set-alert" style="margin-left: 10px; margin-top:-2px;height: 30px; padding: 5px; display: inline-block" class="button-17"> 🗑</button><br>')
             $(alertId).find('#set-alert').attr('id', deleteHash)
@@ -213,14 +272,6 @@ $(document).ready(function(){
             + $(alertId).find("#"+deleteHash).prop('outerHTML');
             // console.log(alertCode)
             var notify_id = symbol1 + "_" + String(hash) + "_" + target
-
-
-            $('body').on('click', '#'+deleteHash, function(e){
-                deleteAlert(notify_id)
-           })
-        //    $('#'+deleteHash).on('click', function(e){
-        //         deleteAlert(notify_id)
-        //     })
 
             // store alerts in chrome sync storage in the format {a_symbol_hash_priceTarget (var notify_id): code snippet}
             chrome.storage.sync.get(['alerts'], function(result) {
@@ -243,7 +294,7 @@ $(document).ready(function(){
             chrome.storage.sync.set(jsonfile, function() {});
 
             // append the price-alert template and the bell button template
-            $(alertId).find('#'+deleteHash).after(alertForm)
+            $(alertId).find(newId2).next().after(alertForm)
             $(alertId).find('#price-alert').css('display', 'inline-block', 'margin-top', '1px', 'margin-bottom', '0px')
             $(alertId).find('#price-alert').after(setAlertButton)
             // $(alertId).find('#price-alert').before("<br>")
@@ -252,6 +303,9 @@ $(document).ready(function(){
         }
 
     })
+
+
+
 
     // Get from chrome storage all the symbols on the watchlist
     // format is {symbol: code_snippet}
@@ -330,6 +384,8 @@ $(document).ready(function(){
     }
 
 
+
+
     function generateHash(){
         //return a unique hash
         var hash = Date.now()
@@ -337,17 +393,11 @@ $(document).ready(function(){
     }
 
 
-    // for testing ONLY
-    // $('body').on('click', "#delete-1640641458297", function(){
-    //     deleteAlert("sol_1640641458297_1")
-    // })
-    // TODO: delete an alert 
+
+
+    //delete an alert 
     function deleteAlert(notify_id){
- 
-        // chrome.notifications.clear({
-        //     notificationId: notify_id
-        // })
-       
+        console.log("alert deleted ", notify_id)
         // remove the key that is named notify_id and remove the notify_id in the alerts array
         chrome.storage.sync.remove(notify_id, function(item) {
             // console.log("Removed")
@@ -394,7 +444,3 @@ $(document).ready(function(){
 })
 
 
-//TODO: 
-// - make sure delete icon onclick is working, retrieve the id of the alert
-// - when onclick, find delete icon and its neighbor and remove them
-// - remove the corresponding alert in chrome storage based on the id
