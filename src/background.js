@@ -237,6 +237,7 @@ function deleteOnClick(){
             price_alert_id = "price-alert-" + hash
 
             $('body').on('click', '#'+delete_id, function(e){
+                console.log("Removing alert")
                 //remove alert key value pair from storage
                 chrome.storage.sync.remove(notify_id, function(item) {
                     console.log("Removed alert onclick")

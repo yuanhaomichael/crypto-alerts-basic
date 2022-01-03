@@ -395,4 +395,6 @@ $(document).ready(function(){
 
 
 //TODO: 
-// - delete alert onClick nested function doesn't work after reloading from chrome storage
+// - make sure delete icon onclick is working, retrieve the id of the alert
+// - when onclick, find delete icon and its neighbor and remove them
+// - remove the corresponding alert in chrome storage based on the id
