@@ -1,4 +1,4 @@
-const period = 60; // in minutes
+const period = 1; // in minutes
 
 chrome.runtime.onInstalled.addListener(function(){
     runAlertSystem();
@@ -8,6 +8,9 @@ chrome.runtime.onStartup.addListener(function(){
     runAlertSystem();
 })
 
+// chrome.action.onClicked.addListener(function(){
+//     runAlertSystem();
+// })
 
 function runNotification(notify_id, price_a, symbol){
     // fetch all alerts from chrome sync storage

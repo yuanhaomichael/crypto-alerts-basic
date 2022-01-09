@@ -42,7 +42,9 @@ $(document).ready(function(){
         var price = 0;
         for(var c=0; c < alert_id.length; c++){
             if(alert_id.charAt(c) == '-'){
-                price = parseFloat(alert_id.substring(0,c))
+                price = alert_id.substring(0,c)
+                price = String(price).replace('_','.')
+                price = parseFloat(price)
                 break
             }
         }
@@ -244,21 +246,24 @@ $(document).ready(function(){
         // get price target from the form
         var alertId = "#watchlist-item-" + symbol1
         var target = $(alertId).find('input').val()
+        target = parseFloat(target)
+
         if(target > 0){
             // store alert and trigger alert 
             var hash = generateHash()
             
-            //clone price-alert template, change id of the previous "price-alert" to "price-alert-[hash]"
+            //clone price-alert template, change id of the previous "price-alert" to "[target]-price-alert-[hash]"
             var alertForm = $(alertId).find('#price-alert').prop('outerHTML')
             var setAlertButton = $(alertId).find('#set-alert').prop('outerHTML')
 
             var oldId = $(alertId).find('#price-alert').attr('id')
-            var newId = String(target) + "-" + oldId + "-" + String(hash)
+            var newId = String(target).replace('.', "_") + "-" + oldId + "-" + String(hash)
             var newId2 = "#"+ newId
             $(alertId).find('#price-alert').attr('id', newId)
-
+            target = String(target)
             // display alert under symbol name, toggle alert button to delete button
             var text = "Price alert at $" + target + " USD"
+            
             $(alertId).find(newId2).html('<p></p>')
             $(alertId).find(newId2).append(text)
             $(alertId).find(newId2).css("display", "inline")
@@ -270,7 +275,7 @@ $(document).ready(function(){
             $(alertId).find('#set-alert').attr('id', deleteHash)
             var alertCode = $(alertId).find(newId2).prop('outerHTML')
             + $(alertId).find("#"+deleteHash).prop('outerHTML');
-            // console.log(alertCode)
+
             var notify_id = symbol1 + "_" + String(hash) + "_" + target
 
             // store alerts in chrome sync storage in the format {a_symbol_hash_priceTarget (var notify_id): code snippet}
@@ -444,3 +449,5 @@ $(document).ready(function(){
 })
 
 
+// TODO:
+// - service worker does not fire consistently. Sometimes it's inactive. (Perhaps start service worker on user click popup?)
