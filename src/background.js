@@ -1,4 +1,4 @@
-const period = 1; // in minutes
+const period = 0.1; // in minutes
 
 chrome.runtime.onInstalled.addListener(function(){
     runAlertSystem();
@@ -127,14 +127,14 @@ function runAlertSystem(){
             //for all alerts of a given symbol, find the closest to the 
             //price target that is below the current price and also within 5 dollars range
             alert_arr.forEach(target => {
-                if(Math.abs(target-current)<closest){
+                if(Math.abs(target-current)<closest && current<target){
                     closest = Math.abs(target-current)
                     end_target = target
                 }
             })
             console.log(end_target)
             // end_target saves the best price alert that is closest to current price and higher than the current price
-            if(closest < 5 && current < end_target){
+            if(closest < 10 && current < end_target){
                 console.log("notify!")
                 runNotification(String(Date.now()), end_target, sym)
                 removeAlert(sym, end_target)
@@ -180,11 +180,6 @@ function removeAlert(sym, price_target){
                 //remove alert key value pair from storage
                 chrome.storage.sync.remove(notify_id, function(item) {
                     console.log("Removed key value pair")
-                    // remove alerts on the UI right away
-                    // price_alert_id = "price-alert-" + hash
-                    // delete_id =  "delete-" + hash
-                    // $( price_alert_id ).remove();
-                    // $( delete_id ).remove();
                 });
                 //remove alert from alert array in storage
                 index = alerts.indexOf(notify_id)

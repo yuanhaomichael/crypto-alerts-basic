@@ -451,3 +451,4 @@ $(document).ready(function(){
 
 // TODO:
 // - service worker does not fire consistently. Sometimes it's inactive. (Perhaps start service worker on user click popup?)
+// - alerts doesn't get deleted when you delete them - still firing notifications
